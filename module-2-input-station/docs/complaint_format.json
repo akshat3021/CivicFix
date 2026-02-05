@@ -1,0 +1,15 @@
+{
+  "complaint_id": "UUID (auto-generated)",
+  "user_id": "UUID (from Module 1)",
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "image_base64": null,
+  "location": {
+    "latitude": null,
+    "longitude": null
+  },
+  "danger_score": 0,
+  "status": "OPEN",
+  "created_at": "ISO timestamp"
+}
