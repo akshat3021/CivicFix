@@ -16,9 +16,22 @@ public class AdminController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
+
+        String action = request.getParameter("action");
+        String idParam = request.getParameter("id");
+
+        if ("resolve".equals(action) && idParam != null) {
+            int idToResolve = Integer.parseInt(idParam);
+            
+            System.out.println(">>> CLICKED RESOLVE ON ID: " + idToResolve); // DEBUG PRINT
+            
+            ComplaintDAO.updateStatus(idToResolve, "CLOSED");
+            
+            response.sendRedirect("admin");
+            return;
+        }
+
         List<Complaint> realList = ComplaintDAO.getAllComplaints();
-        
         request.setAttribute("complaintList", realList);
         request.setAttribute("adminName", "Akshat Aswal");
         
