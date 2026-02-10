@@ -37,7 +37,11 @@
                                 <span class="text-dark"><%= c.getSeverityScore() %></span>
                             <% } %>
                         </td>
-                        <td><button class="btn btn-sm btn-success">Resolve</button></td>
+                        <td>
+                             <a href="admin?action=resolve&id=<%= c.getId() %>" class="btn btn-sm btn-success">
+                                ✅ Resolve
+                             </a>
+                            </td>
                     </tr>
                     <%      } 
                         } 

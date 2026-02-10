@@ -1,2 +1,4 @@
-com\civicfix\model\Complaint.class
+com\civicfix\dao\TestDB.class
 com\civicfix\controller\AdminController.class
+com\civicfix\dao\DBConnection.class
+com\civicfix\model\Complaint.class
