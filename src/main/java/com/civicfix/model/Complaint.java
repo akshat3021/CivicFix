@@ -1,30 +1,18 @@
 package com.civicfix.model;
 
-import java.sql.Timestamp;
-
 public class Complaint {
-    private int id;
+    private int id; // Note: Changed to int to match rs.getInt("id")
     private String title;
     private String description;
     private String category;
-    private int severityScore;
+    private int votes;
+    private int dangerLevel;
+    private int severityScore; // Used by DAO
     private String status;
-    private Timestamp createdAt;
+    private boolean isReopened;
+    private double priorityScore;
 
-    // 1. EMPTY CONSTRUCTOR (Crucial for the DAO error)
-    public Complaint() {
-    }
-
-    // 2. FULL CONSTRUCTOR
-    public Complaint(int id, String title, String category, int severityScore) {
-        this.id = id;
-        this.title = title;
-        this.category = category;
-        this.severityScore = severityScore;
-        this.status = "OPEN";
-    }
-
-    // 3. GETTERS AND SETTERS (Crucial for the "cannot find symbol" errors)
+    // Getters and Setters needed by the DAO:
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -43,6 +31,13 @@ public class Complaint {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    // Keep your existing votes/reopened/priority methods below...
+    public int getVotes() { return votes; }
+    public void setVotes(int votes) { this.votes = votes; }
+    public int getDangerLevel() { return dangerLevel; }
+    public void setDangerLevel(int dangerLevel) { this.dangerLevel = dangerLevel; }
+    public boolean isReopened() { return isReopened; }
+    public void setReopened(boolean reopened) { this.isReopened = reopened; }
+    public double getPriorityScore() { return priorityScore; }
+    public void setPriorityScore(double priorityScore) { this.priorityScore = priorityScore; }
 }
