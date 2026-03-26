@@ -58,4 +58,25 @@ public class ComplaintDAO {
             e.printStackTrace();
         }
     }
+
+    // 4. Save a new complaint from the user
+    public static boolean insertComplaint(Complaint c) {
+        boolean isSuccess = false;
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "INSERT INTO complaints (title, description, category, severity_score, status) VALUES (?, ?, ?, ?, 'OPEN')";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            
+            ps.setString(1, c.getTitle());
+            ps.setString(2, c.getDescription());
+            ps.setString(3, c.getCategory());
+            ps.setInt(4, 50); // Default severity score
+            
+            int rows = ps.executeUpdate();
+            if (rows > 0) isSuccess = true;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
 }

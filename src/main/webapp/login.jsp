@@ -13,6 +13,13 @@
 
     <div class="auth-box">
         <h3 class="text-center mb-4">🏙️ CivicFix</h3>
+
+        <% if(request.getParameter("error") != null) { %>
+            <div class="alert alert-danger"><%= request.getParameter("error") %></div>
+        <% } %>
+        <% if(request.getParameter("msg") != null) { %>
+            <div class="alert alert-success"><%= request.getParameter("msg") %></div>
+        <% } %>
         
         <ul class="nav nav-tabs mb-3" id="authTabs">
             <li class="nav-item">
@@ -54,6 +61,19 @@
                         <label>Password</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
+
+                    <div class="mb-3">
+                        <label>Register As</label>
+                        <select name="role" class="form-select">
+                            <option value="USER">Citizen (User)</option>
+                            <option value="ADMIN">City Administrator</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-danger fw-bold">Admin Passkey</label>
+                        <input type="password" name="admin_passkey" class="form-control" placeholder="Leave blank if Citizen">
+                    </div>
+
                     <button type="submit" class="btn btn-success w-100">Sign Up</button>
                 </form>
             </div>

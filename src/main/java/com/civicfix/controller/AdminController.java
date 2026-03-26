@@ -9,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession; // Added this import
 
 @WebServlet("/admin")
 public class AdminController extends HttpServlet {
@@ -17,6 +18,20 @@ public class AdminController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
 
+        // 1. SECURITY CHECK & GET DYNAMIC NAME
+        HttpSession session = request.getSession(false);
+        String currentAdminName = "Admin"; // Fallback name
+        
+        // Check if the user is actually logged in and is an Admin
+        if (session != null && session.getAttribute("adminName") != null) {
+            currentAdminName = (String) session.getAttribute("adminName");
+        } else {
+            // Kick them back to the login page if they try to bypass the Gatekeeper!
+            response.sendRedirect("login.jsp?error=Access Denied! Please login as Admin.");
+            return;
+        }
+
+        // 2. AKSHAT'S RESOLVE LOGIC
         String action = request.getParameter("action");
         String idParam = request.getParameter("id");
 
@@ -31,9 +46,12 @@ public class AdminController extends HttpServlet {
             return;
         }
 
+        // 3. LOAD DATA AND SEND TO JSP
         List<Complaint> realList = ComplaintDAO.getAllComplaints();
         request.setAttribute("complaintList", realList);
-        request.setAttribute("adminName", "Akshat Aswal");
+        
+        // FIX: Now we pass the REAL logged-in admin's name!
+        request.setAttribute("adminName", currentAdminName); 
         
         request.getRequestDispatcher("/admin-dashboard.jsp").forward(request, response);
     }

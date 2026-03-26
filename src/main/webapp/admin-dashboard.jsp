@@ -16,7 +16,10 @@
     <div class="container dashboard-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>🏙️ CivicFix Admin Panel</h2>
-            <h5 class="text-secondary">User: <%= request.getAttribute("adminName") %></h5>
+            <div class="text-end">
+                <h5 class="text-secondary mb-2">User: <%= request.getAttribute("adminName") %></h5>
+                <a href="auth?action=logout" class="btn btn-sm btn-outline-danger">🚪 Logout</a>
+            </div>
         </div>
 
         <hr>

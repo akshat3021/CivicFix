@@ -6,6 +6,7 @@ public class User {
     private String password;
     private String email;
     private int rewardPoints;
+    private String role; // new for admin.
 
     public User() {}
 
@@ -23,4 +24,7 @@ public class User {
 
     public int getRewardPoints() { return rewardPoints; }
     public void setRewardPoints(int rewardPoints) { this.rewardPoints = rewardPoints; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }
