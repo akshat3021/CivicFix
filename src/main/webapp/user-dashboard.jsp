@@ -1,83 +1,154 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="com.civicfix.model.User" %>
 <%
-    // Security layer: Kick them back to login if they aren't signed in
     User currentUser = (User) session.getAttribute("currentUser");
-    if (currentUser == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
+    if (currentUser == null) { response.sendRedirect("login.jsp"); return; }
+    String safeError = request.getParameter("error") != null
+        ? request.getParameter("error").replaceAll("<[^>]*>","") : null;
 %>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>CivicFix - Citizen Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivicFix — Citizen Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080c10;--surface:#0d1117;--border:#1e2d3d;
+  --accent:#00d4ff;--accent2:#00ff88;--danger:#ff3b5c;--warn:#ffb800;
+  --text:#c9d1d9;--text-dim:#586069;
+  --mono:'Share Tech Mono',monospace;
+  --head:'Barlow Condensed',sans-serif;
+  --body:'Barlow',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.012) 2px,rgba(0,212,255,0.012) 4px);pointer-events:none;z-index:999;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.logo{font-family:var(--head);font-size:22px;font-weight:700;letter-spacing:3px;color:#fff;display:flex;align-items:center;gap:10px;}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;}
+.topbar-right{display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:11px;color:var(--text-dim);}
+.user-badge{padding:4px 12px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);border-radius:2px;color:var(--accent2);}
+.logout-link{color:var(--danger);text-decoration:none;letter-spacing:1px;}
+.logout-link:hover{opacity:.7;}
+
+.main{padding:28px;max-width:1100px;margin:0 auto;}
+.page-title{font-family:var(--head);font-size:32px;font-weight:700;letter-spacing:2px;color:#fff;line-height:1;}
+.page-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:6px;letter-spacing:1px;margin-bottom:28px;}
+
+.alert{font-family:var(--mono);font-size:11px;padding:12px 16px;margin-bottom:20px;border-left:3px solid;letter-spacing:.5px;}
+.alert-error{background:rgba(255,59,92,.08);border-color:var(--danger);color:var(--danger);}
+.alert-success{background:rgba(0,255,136,.08);border-color:var(--accent2);color:var(--accent2);}
+
+.grid{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+.card{background:var(--surface);border:1px solid var(--border);padding:26px;}
+.card-title{font-family:var(--head);font-size:14px;font-weight:600;letter-spacing:2px;color:var(--accent);margin-bottom:22px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'//';font-family:var(--mono);color:var(--text-dim);font-size:12px;}
+.card-accent2 .card-title{color:var(--accent2);}
+.card-accent2{border-color:rgba(0,255,136,.15);}
+
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-bottom:7px;}
+.form-input,.form-select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:11px 14px;font-family:var(--mono);font-size:13px;outline:none;transition:border .15s;border-radius:0;-webkit-appearance:none;}
+.form-input:focus,.form-select:focus{border-color:var(--accent);}
+textarea.form-input{resize:vertical;min-height:90px;}
+.form-select option{background:var(--bg);}
+.submit-btn{width:100%;padding:13px;background:var(--accent);color:var(--bg);font-family:var(--head);font-size:17px;font-weight:700;letter-spacing:4px;border:none;cursor:pointer;margin-top:4px;transition:all .2s;}
+.submit-btn:hover{background:#33ddff;box-shadow:0 0 24px rgba(0,212,255,.3);}
+
+.points-display{text-align:center;padding:20px 0 16px;}
+.points-val{font-family:var(--head);font-size:60px;font-weight:700;color:var(--accent2);line-height:1;}
+.points-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:3px;margin-top:6px;}
+
+.reward-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(30,45,61,.5);font-size:12px;}
+.reward-row:last-child{border:none;}
+.reward-pts{font-family:var(--mono);font-size:12px;color:var(--accent2);}
+.reward-pts.dim{color:var(--text-dim);}
+
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(30,45,61,.4);font-family:var(--mono);font-size:11px;}
+.info-row:last-child{border:none;}
+.info-key{color:var(--text-dim);}
+.info-val{color:var(--text);}
+</style>
 </head>
-<body class="bg-light">
-
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Welcome, <%= currentUser.getUsername() %>! 🏙️</h2>
-        <span class="badge bg-warning text-dark fs-6">Reward Points: <%= currentUser.getRewardPoints() %> 🏆</span>
-    </div>
-
-    <% if(request.getParameter("error") != null) { %>
-        <div class="alert alert-danger"><%= request.getParameter("error") %></div>
-    <% } %>
-    <% if(request.getParameter("msg") != null) { %>
-        <div class="alert alert-success">Complaint submitted successfully! You earned +10 Reward Points!</div>
-    <% } %>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">Report an Issue</div>
-                <div class="card-body">
-                    <form action="SubmitComplaintServlet" method="POST" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label>Title</label>
-                            <input type="text" name="title" class="form-control" placeholder="E.g., Deep Pothole on Main St" required>
-                        </div>
-                        <div class="mb-3">
-                            <label>Category</label>
-                            <select name="category" class="form-select">
-                                <option value="ROADS">Roads</option>
-                                <option value="ELECTRIC">Electric</option>
-                                <option value="SANITATION">Sanitation</option>
-                                <option value="WATER">Water</option>
-                                <option value="PUBLIC_SAFETY">Public Safety</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label>Description (Min 20 chars)</label>
-                            <textarea name="description" class="form-control" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label>Evidence (Photo - Max 2MB)</label>
-                            <input type="file" name="image" class="form-control" accept="image/png, image/jpeg" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Submit to City</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">Your Civic Impact</div>
-                <div class="card-body">
-                    <p>Every time you report a valid issue to the city, the Gatekeeper system awards you points.</p>
-                    <ul>
-                        <li><strong>Report an Issue:</strong> +10 Points</li>
-                        <li><strong>Issue Resolved by Admin:</strong> +50 Points (Coming soon)</li>
-                    </ul>
-                    <a href="auth?action=logout" class="btn btn-outline-danger mt-3">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
+<body>
+<div class="topbar">
+  <div class="logo"><span class="logo-dot"></span>CIVICFIX <span style="font-weight:300;color:var(--text-dim);font-size:14px;letter-spacing:1px;">// CITIZEN PORTAL</span></div>
+  <div class="topbar-right">
+    <span class="user-badge">CITIZEN: <%= currentUser.getUsername() %></span>
+    <a href="auth?action=logout" class="logout-link">[ LOGOUT ]</a>
+  </div>
 </div>
 
+<div class="main">
+  <div class="page-title">REPORT AN INCIDENT</div>
+  <div class="page-sub">// SUBMIT CIVIC ISSUES DIRECTLY TO MUNICIPAL AUTHORITIES</div>
+
+  <% if (safeError != null) { %>
+    <div class="alert alert-error">⚠ <%= safeError %></div>
+  <% } %>
+  <% if ("success".equals(request.getParameter("msg"))) { %>
+    <div class="alert alert-success">✓ COMPLAINT SUBMITTED SUCCESSFULLY — YOU EARNED +10 REWARD POINTS!</div>
+  <% } %>
+
+  <div class="grid">
+    <!-- COMPLAINT FORM -->
+    <div class="card">
+      <div class="card-title">NEW COMPLAINT</div>
+      <form action="SubmitComplaintServlet" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">ISSUE TITLE</label>
+          <input class="form-input" type="text" name="title" placeholder="E.g., Deep pothole on Main Street" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CATEGORY</label>
+          <select class="form-select" name="category">
+            <option value="ROADS">ROADS</option>
+            <option value="WATER">WATER</option>
+            <option value="ELECTRIC">ELECTRIC</option>
+            <option value="SANITATION">SANITATION</option>
+            <option value="PUBLIC_SAFETY">PUBLIC SAFETY</option>
+            <option value="OTHER">OTHER</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">DESCRIPTION (MIN 20 CHARS)</label>
+          <textarea class="form-input" name="description" placeholder="Describe the issue in detail..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">EVIDENCE PHOTO (MAX 2MB — JPG/PNG)</label>
+          <input class="form-input" type="file" name="image" accept="image/png,image/jpeg" style="padding:8px 14px;color:var(--text-dim);">
+        </div>
+        <button type="submit" class="submit-btn">TRANSMIT TO CITY ▶</button>
+      </form>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card card-accent2">
+        <div class="card-title">CIVIC SCORE</div>
+        <div class="points-display">
+          <div class="points-val"><%= currentUser.getRewardPoints() %></div>
+          <div class="points-label">REWARD POINTS</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">EARN POINTS</div>
+        <div class="reward-row"><span>Report a valid issue</span><span class="reward-pts">+10 PTS</span></div>
+        <div class="reward-row"><span>Issue resolved by admin</span><span class="reward-pts dim">+50 PTS (soon)</span></div>
+        <div class="reward-row"><span>Report verified critical</span><span class="reward-pts dim">+25 PTS (soon)</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ACCOUNT INFO</div>
+        <div class="info-row"><span class="info-key">USERNAME</span><span class="info-val"><%= currentUser.getUsername() %></span></div>
+        <div class="info-row"><span class="info-key">EMAIL</span><span class="info-val"><%= currentUser.getEmail() %></span></div>
+        <div class="info-row"><span class="info-key">ROLE</span><span class="info-val" style="color:var(--accent2);">CITIZEN</span></div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
