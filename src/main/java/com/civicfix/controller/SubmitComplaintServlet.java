@@ -7,6 +7,7 @@ import com.civicfix.model.User;
 import com.civicfix.validators.ComplaintValidator;
 import com.civicfix.validators.ImageValidator;
 
+import java.io.File;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -20,6 +21,22 @@ import javax.servlet.http.Part;
 @WebServlet("/SubmitComplaintServlet")
 @MultipartConfig(maxFileSize = 1024 * 1024 * 5) // Allows up to 5MB file uploads
 public class SubmitComplaintServlet extends HttpServlet {
+
+    // --- NEW HELPER METHOD FOR TOMCAT 7 COMPATIBILITY ---
+    private String extractFileName(Part part) {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] items = contentDisp.split(";");
+        for (String s : items) {
+            if (s.trim().startsWith("filename")) {
+                String clientFileName = s.substring(s.indexOf("=") + 2, s.length() - 1);
+                // Handle different browser path formats just in case
+                clientFileName = clientFileName.replace("\\", "/");
+                int i = clientFileName.lastIndexOf('/');
+                return clientFileName.substring(i + 1);
+            }
+        }
+        return null;
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
@@ -55,22 +72,42 @@ public class SubmitComplaintServlet extends HttpServlet {
             }
         }
 
-        // 5. Save to Database
+        // 5. Process and Save the Physical Image
+        String finalImagePath = null;
+        if (imagePart != null && imagePart.getSize() > 0) {
+            
+            // USE OUR NEW TOMCAT 7 HELPER METHOD HERE:
+            String fileName = extractFileName(imagePart);
+            
+            if (fileName != null && !fileName.isEmpty()) {
+                // Create an 'uploads' folder dynamically inside the Tomcat server
+                String uploadPath = getServletContext().getRealPath("") + File.separator + "uploads";
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) uploadDir.mkdir();
+                
+                // Save the file to the folder
+                imagePart.write(uploadPath + File.separator + fileName);
+                
+                // This is what gets saved to MySQL (e.g., "uploads/pothole.png")
+                finalImagePath = "uploads/" + fileName; 
+            }
+        }
+
+        // 6. Save to Database
         Complaint newComplaint = new Complaint();
         newComplaint.setTitle(title);
         newComplaint.setCategory(category);
         newComplaint.setDescription(description);
+        newComplaint.setImagePath(finalImagePath);
         
         boolean isSaved = ComplaintDAO.insertComplaint(newComplaint);
 
         if (isSaved) {
-            // 6. Give the user their reward points!
+            // 7. Give the user their reward points!
             UserDAO.addRewardPoints(currentUser.getUsername(), 10);
-            
-            // Update the session so the UI shows the new points immediately
             currentUser.setRewardPoints(currentUser.getRewardPoints() + 10);
             
-            response.sendRedirect("user-dashboard.jsp?msg=success");
+            response.sendRedirect("user-dashboard.jsp?msg=Complaint submitted successfully!");
         } else {
             response.sendRedirect("user-dashboard.jsp?error=Database Error: Could not save complaint.");
         }

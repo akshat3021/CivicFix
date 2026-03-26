@@ -40,4 +40,11 @@ public class Complaint {
     public void setReopened(boolean reopened) { this.isReopened = reopened; }
     public double getPriorityScore() { return priorityScore; }
     public void setPriorityScore(double priorityScore) { this.priorityScore = priorityScore; }
+
+    // Add this with the other variables
+    private String imagePath;
+
+    // Add these at the bottom
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 }
