@@ -12,7 +12,7 @@ public class ComplaintDAO {
         List<Complaint> list = new ArrayList<>();
         
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT * FROM complaints ORDER BY created_at DESC";
+            String sql = "SELECT * FROM complaints ORDER BY status DESC, severity_score DESC";
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             
@@ -24,6 +24,7 @@ public class ComplaintDAO {
                 c.setCategory(rs.getString("category"));
                 c.setSeverityScore(rs.getInt("severity_score"));
                 c.setStatus(rs.getString("status"));
+                c.setImagePath(rs.getString("image_path"));
                 // c.setCreatedAt(rs.getTimestamp("created_at")); // Optional
                 
                 list.add(c);
@@ -63,17 +64,18 @@ public class ComplaintDAO {
     public static boolean insertComplaint(Complaint c) {
         boolean isSuccess = false;
         try (Connection conn = DBConnection.getConnection()) {
-            String sql = "INSERT INTO complaints (title, description, category, severity_score, status) VALUES (?, ?, ?, ?, 'OPEN')";
+            // Added image_path to the SQL
+            String sql = "INSERT INTO complaints (title, description, category, severity_score, status, image_path) VALUES (?, ?, ?, ?, 'OPEN', ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
             
             ps.setString(1, c.getTitle());
             ps.setString(2, c.getDescription());
             ps.setString(3, c.getCategory());
-            ps.setInt(4, 50); // Default severity score
+            ps.setInt(4, 50); 
+            ps.setString(5, c.getImagePath()); // Save the image path!
             
             int rows = ps.executeUpdate();
             if (rows > 0) isSuccess = true;
-            
         } catch (Exception e) {
             e.printStackTrace();
         }
