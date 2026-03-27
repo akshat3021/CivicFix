@@ -125,6 +125,16 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .resolved-tag{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;}
 
 .empty-state{text-align:center;padding:60px;font-family:var(--mono);font-size:13px;color:var(--text-dim);}
+
+/* NEW CUSTOM MODAL CSS */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center; backdrop-filter:blur(4px); }
+.modal-overlay.active { display:flex; }
+.modal-box { background:var(--surface); border:1px solid var(--accent); width:100%; max-width:600px; padding:24px; position:relative; max-height:90vh; overflow-y:auto; box-shadow: 0 0 20px rgba(0,212,255,0.1); }
+.close-btn { position:absolute; top:16px; right:20px; color:var(--danger); cursor:pointer; font-family:var(--mono); font-size:16px; background:none; border:none; }
+.modal-title { font-family:var(--head); color:#fff; font-size:24px; margin-bottom:6px; letter-spacing: 2px;}
+.modal-cat { margin-bottom: 20px;}
+.modal-desc { font-family:var(--mono); font-size:13px; color:var(--text); line-height:1.6; background:var(--surface2); padding:16px; border:1px solid var(--border); margin-bottom:20px; }
+.modal-img { max-width:100%; border:1px solid var(--border); border-radius:2px; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -227,14 +237,36 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
           <td>
             <% if (isClosed) { %><span class="status-closed">CLOSED<% } else { %><span class="status-open">OPEN<% } %></span>
           </td>
-          <td>
+          <td style="display:flex; gap: 8px;">
+            <button onclick="openModal('modal_<%= c.getId() %>')" class="resolve-btn" style="border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.06);">[ PREVIEW ]</button>
+            
             <% if (isClosed) { %>
               <span class="resolved-tag">RESOLVED ✓</span>
             <% } else { %>
               <a href="admin?action=resolve&id=<%= c.getId() %>" class="resolve-btn">RESOLVE</a>
             <% } %>
+
+            <a href="admin?action=delete&id=<%= c.getId() %>" class="resolve-btn" style="border-color:var(--danger);color:var(--danger);background:rgba(255,59,92,0.06);" onclick="return confirm('WARNING: DELETE THIS RECORD FOREVER?');">DELETE</a>
           </td>
         </tr>
+
+        <div id="modal_<%= c.getId() %>" class="modal-overlay">
+          <div class="modal-box">
+            <button class="close-btn" onclick="closeModal('modal_<%= c.getId() %>')">[ X ]</button>
+            <div class="modal-title"><%= c.getTitle() %></div>
+            <div class="modal-cat"><span class="cat-badge cat-<%= c.getCategory() %>"><%= c.getCategory() %></span></div>
+            <div style="font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-bottom:6px;">// SECURE INCIDENT LOG</div>
+            <div class="modal-desc"><%= c.getDescription() %></div>
+            
+            <div style="font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-bottom:6px;">// ATTACHED EVIDENCE</div>
+            <% if (c.getImagePath() != null && !c.getImagePath().isEmpty()) { %>
+                <img src="<%= c.getImagePath() %>" class="modal-img">
+            <% } else { %>
+                <div style="font-family:var(--mono); font-size:12px; color:var(--danger);">[ NO VISUAL EVIDENCE PROVIDED ]</div>
+            <% } %>
+          </div>
+        </div>
+
         <% } } %>
       </tbody>
     </table>
@@ -242,16 +274,25 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 </div>
 
 <script>
-// Apply bar widths from data attribute (avoids JSP expressions inside CSS)
+// Apply bar widths from data attribute
 document.querySelectorAll('.bar-fill[data-width]').forEach(el => {
   el.style.width = el.dataset.width + '%';
 });
+// Filter UI
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     this.classList.add('active');
   });
 });
+
+// MODAL CONTROLS
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
 </script>
 </body>
 </html>

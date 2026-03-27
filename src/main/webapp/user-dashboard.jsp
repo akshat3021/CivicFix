@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="com.civicfix.model.User" %>
+<%@ page import="java.util.List, com.civicfix.dao.ComplaintDAO, com.civicfix.model.Complaint" %>
 <%
     User currentUser = (User) session.getAttribute("currentUser");
     if (currentUser == null) { response.sendRedirect("login.jsp"); return; }
@@ -72,6 +73,26 @@ textarea.form-input{resize:vertical;min-height:90px;}
 .info-row:last-child{border:none;}
 .info-key{color:var(--text-dim);}
 .info-val{color:var(--text);}
+
+/* NEW CUSTOM FEED & MODAL CSS */
+.feed-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:20px; margin-top: 20px;}
+.feed-card { background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
+.feed-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 12px;}
+.feed-title { font-family:var(--head); font-size:20px; color:#fff; letter-spacing:1px; line-height:1.2;}
+.feed-score { font-family:var(--mono); font-size:14px; color:var(--danger); font-weight:bold;}
+.feed-btn-row { display:flex; gap:10px; margin-top:16px;}
+.feed-btn { flex:1; padding:8px; background:none; border:1px solid; font-family:var(--mono); font-size:11px; letter-spacing:1px; cursor:pointer; text-align:center;}
+.btn-preview { border-color:var(--accent); color:var(--accent); }
+.btn-preview:hover { background:rgba(0,212,255,0.1); }
+.btn-upvote { border-color:var(--accent2); color:var(--accent2); background:rgba(0,255,136,0.05);}
+.btn-upvote:hover { background:rgba(0,255,136,0.2); }
+
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center; backdrop-filter:blur(4px); }
+.modal-overlay.active { display:flex; }
+.modal-box { background:#0d1117; border:1px solid var(--accent); width:100%; max-width:600px; padding:24px; position:relative; max-height:90vh; overflow-y:auto; box-shadow: 0 0 20px rgba(0,212,255,0.1); }
+.close-btn { position:absolute; top:16px; right:20px; color:var(--danger); cursor:pointer; font-family:var(--mono); font-size:16px; background:none; border:none; }
+.modal-desc { font-family:var(--mono); font-size:13px; color:var(--text); line-height:1.6; background:#111820; padding:16px; border:1px solid var(--border); margin:20px 0; }
+.modal-img { max-width:100%; border:1px solid var(--border); border-radius:2px; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -95,7 +116,6 @@ textarea.form-input{resize:vertical;min-height:90px;}
   <% } %>
 
   <div class="grid">
-    <!-- COMPLAINT FORM -->
     <div class="card">
       <div class="card-title">NEW COMPLAINT</div>
       <form action="SubmitComplaintServlet" method="POST" enctype="multipart/form-data">
@@ -126,7 +146,6 @@ textarea.form-input{resize:vertical;min-height:90px;}
       </form>
     </div>
 
-    <!-- SIDEBAR -->
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="card card-accent2">
         <div class="card-title">CIVIC SCORE</div>
@@ -149,6 +168,69 @@ textarea.form-input{resize:vertical;min-height:90px;}
       </div>
     </div>
   </div>
+
+  <div class="page-title" style="margin-top: 50px;">COMMUNITY FEED</div>
+  <div class="page-sub">// VOTE TO PRIORITIZE ACTIVE ISSUES IN YOUR AREA</div>
+
+  <div class="feed-grid">
+    <%
+        List<Complaint> activeComplaints = ComplaintDAO.getAllComplaints();
+        if(activeComplaints != null && !activeComplaints.isEmpty()) {
+            for(Complaint c : activeComplaints) {
+                if("OPEN".equals(c.getStatus())) {
+    %>
+        <div class="feed-card">
+            <div>
+                <div class="feed-card-header">
+                    <div class="feed-title"><%= c.getTitle() %></div>
+                    <div class="feed-score">🔥 <%= c.getSeverityScore() %></div>
+                </div>
+                <div style="font-family:var(--mono); font-size:10px; color:var(--text-dim);">CATEGORY: <%= c.getCategory() %></div>
+            </div>
+            
+            <div class="feed-btn-row">
+                <button type="button" class="feed-btn btn-preview" onclick="openModal('user_modal_<%= c.getId() %>')">[ PREVIEW ]</button>
+                
+                <form action="VoteServlet" method="POST" style="flex:1;">
+                    <input type="hidden" name="complaintId" value="<%= c.getId() %>">
+                    <button type="submit" class="feed-btn btn-upvote" style="width:100%;">[ + UPVOTE ]</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="user_modal_<%= c.getId() %>" class="modal-overlay">
+          <div class="modal-box">
+            <button class="close-btn" onclick="closeModal('user_modal_<%= c.getId() %>')">[ X ]</button>
+            <div style="font-family:var(--head); font-size:24px; color:#fff; margin-bottom:10px;"><%= c.getTitle() %></div>
+            <div style="font-family:var(--mono); font-size:12px; color:var(--accent);"><%= c.getCategory() %></div>
+            
+            <div class="modal-desc"><%= c.getDescription() %></div>
+            
+            <div style="font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-bottom:6px;">// ATTACHED EVIDENCE</div>
+            <% if (c.getImagePath() != null && !c.getImagePath().isEmpty()) { %>
+                <img src="<%= c.getImagePath() %>" class="modal-img">
+            <% } else { %>
+                <div style="font-family:var(--mono); font-size:12px; color:var(--danger);">[ NO VISUAL EVIDENCE PROVIDED ]</div>
+            <% } %>
+          </div>
+        </div>
+    <% 
+                }
+            }
+        }
+    %>
+  </div>
+
 </div>
+
+<script>
+// CUSTOM JS FOR MODALS
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+</script>
 </body>
 </html>

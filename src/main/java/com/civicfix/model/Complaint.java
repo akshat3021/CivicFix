@@ -1,18 +1,21 @@
 package com.civicfix.model;
 
 public class Complaint {
-    private int id; // Note: Changed to int to match rs.getInt("id")
+    
+    // --- ALL VARIABLES AT THE TOP ---
+    private int id; 
     private String title;
     private String description;
     private String category;
     private int votes;
     private int dangerLevel;
-    private int severityScore; // Used by DAO
+    private int severityScore; 
     private String status;
     private boolean isReopened;
     private double priorityScore;
+    private String imagePath; // <-- Added right here with the others!
 
-    // Getters and Setters needed by the DAO:
+    // --- ALL GETTERS AND SETTERS BELOW ---
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -31,13 +34,18 @@ public class Complaint {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    // Keep your existing votes/reopened/priority methods below...
     public int getVotes() { return votes; }
     public void setVotes(int votes) { this.votes = votes; }
+    
     public int getDangerLevel() { return dangerLevel; }
     public void setDangerLevel(int dangerLevel) { this.dangerLevel = dangerLevel; }
+    
     public boolean isReopened() { return isReopened; }
     public void setReopened(boolean reopened) { this.isReopened = reopened; }
+    
     public double getPriorityScore() { return priorityScore; }
     public void setPriorityScore(double priorityScore) { this.priorityScore = priorityScore; }
+    
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 }

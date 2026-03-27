@@ -55,7 +55,17 @@ public class DBConnection {
                 category TEXT NOT NULL,
                 severity_score INTEGER DEFAULT 50,
                 status TEXT NOT NULL DEFAULT 'OPEN',
+                image_path TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """;
+
+        // NEW: The Junction table that prevents double-voting!
+        String createVotes = """
+            CREATE TABLE IF NOT EXISTS user_votes (
+                username TEXT NOT NULL,
+                complaint_id INTEGER NOT NULL,
+                PRIMARY KEY (username, complaint_id)
             )
             """;
 
@@ -63,6 +73,7 @@ public class DBConnection {
              Statement st = conn.createStatement()) {
             st.execute(createUsers);
             st.execute(createComplaints);
+            st.execute(createVotes); // Execute the new table
             System.out.println("✅ CivicFix tables initialized (SQLite).");
         } catch (SQLException e) {
             System.out.println("❌ Table creation failed.");
