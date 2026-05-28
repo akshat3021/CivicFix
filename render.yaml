@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: civicfix
+    runtime: docker
+    repo: https://github.com/akshat3021/CivicFix
+    branch: main
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: JAVA_OPTS
+        value: "-Xmx256m -Xms128m"
+    healthCheckPath: /

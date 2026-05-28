@@ -7,8 +7,11 @@ import java.sql.Statement;
 
 public class DBConnection {
 
-    // SQLite: single file stored in the project folder. No server needed!
-    private static final String DB_PATH = "civicfix.db";
+    // SQLite path — read from env var CIVICFIX_DB_PATH (set in Docker/Render),
+    // falls back to "civicfix.db" in the working directory for local development.
+    private static final String DB_PATH = System.getenv("CIVICFIX_DB_PATH") != null
+            ? System.getenv("CIVICFIX_DB_PATH")
+            : "civicfix.db";
     private static final String URL = "jdbc:sqlite:" + DB_PATH;
 
     public static Connection getConnection() {
