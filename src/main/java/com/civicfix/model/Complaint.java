@@ -1,21 +1,19 @@
 package com.civicfix.model;
 
 public class Complaint {
-    
-    // --- ALL VARIABLES AT THE TOP ---
-    private int id; 
+    private int id; // Note: Changed to int to match rs.getInt("id")
     private String title;
     private String description;
     private String category;
     private int votes;
     private int dangerLevel;
-    private int severityScore; 
+    private int severityScore; // Used by DAO
     private String status;
     private boolean isReopened;
     private double priorityScore;
-    private String imagePath; // <-- Added right here with the others!
+    private int userId; // The ID of the reporting citizen
 
-    // --- ALL GETTERS AND SETTERS BELOW ---
+    // Getters and Setters needed by the DAO:
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -34,18 +32,35 @@ public class Complaint {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    // Keep your existing votes/reopened/priority methods below...
     public int getVotes() { return votes; }
     public void setVotes(int votes) { this.votes = votes; }
-    
     public int getDangerLevel() { return dangerLevel; }
     public void setDangerLevel(int dangerLevel) { this.dangerLevel = dangerLevel; }
-    
     public boolean isReopened() { return isReopened; }
     public void setReopened(boolean reopened) { this.isReopened = reopened; }
-    
     public double getPriorityScore() { return priorityScore; }
     public void setPriorityScore(double priorityScore) { this.priorityScore = priorityScore; }
-    
+
+    // Add this with the other variables
+    private String imagePath;
+    private String dispatchStatus;
+    private String dispatchLog;
+    private int bountyPool;
+
+    // Add these at the bottom
     public String getImagePath() { return imagePath; }
     public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
+
+    public String getDispatchStatus() { return dispatchStatus; }
+    public void setDispatchStatus(String dispatchStatus) { this.dispatchStatus = dispatchStatus; }
+
+    public String getDispatchLog() { return dispatchLog; }
+    public void setDispatchLog(String dispatchLog) { this.dispatchLog = dispatchLog; }
+
+    public int getBountyPool() { return bountyPool; }
+    public void setBountyPool(int bountyPool) { this.bountyPool = bountyPool; }
 }

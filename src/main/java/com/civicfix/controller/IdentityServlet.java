@@ -21,9 +21,20 @@ public class IdentityServlet extends HttpServlet {
 
         // --- REGISTRATION LOGIC ---
         if ("register".equals(action)) {
+            String email = request.getParameter("email");
+            if (email == null) {
+                response.sendRedirect("login.jsp?error=Email address is required!");
+                return;
+            }
+            String verifiedEmail = (String) request.getSession().getAttribute("verified_email");
+            if (verifiedEmail == null || !verifiedEmail.equalsIgnoreCase(email.trim())) {
+                response.sendRedirect("login.jsp?error=Please verify your email address via OTP first!");
+                return;
+            }
+
             User newUser = new User();
             newUser.setUsername(request.getParameter("username"));
-            newUser.setEmail(request.getParameter("email"));
+            newUser.setEmail(email.trim());
             newUser.setPassword(request.getParameter("password"));
 
             // Handle the Role and Admin Passkey
@@ -55,7 +66,11 @@ public class IdentityServlet extends HttpServlet {
 
             // 1. Check for the Master Admin Login
             if ("_yasharth@2006dhanai".equals(user) && "SDFGDFSGFDSF".equals(pass)) {
-                HttpSession session = request.getSession();
+                HttpSession oldSession = request.getSession(false);
+                if (oldSession != null) {
+                    oldSession.invalidate();
+                }
+                HttpSession session = request.getSession(true);
                 session.setAttribute("adminName", "Master Admin");
                 session.setAttribute("role", "ADMIN");
                 System.out.println("✅ Master Admin Access Granted");
@@ -68,7 +83,11 @@ public class IdentityServlet extends HttpServlet {
             User loggedInUser = UserDAO.validateLogin(user, pass);
             
             if (loggedInUser != null) {
-                HttpSession session = request.getSession();
+                HttpSession oldSession = request.getSession(false);
+                if (oldSession != null) {
+                    oldSession.invalidate();
+                }
+                HttpSession session = request.getSession(true);
                 session.setAttribute("currentUser", loggedInUser);
                 session.setAttribute("role", loggedInUser.getRole());
                 

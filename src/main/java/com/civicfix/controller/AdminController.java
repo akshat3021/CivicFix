@@ -23,25 +23,38 @@ public class AdminController extends HttpServlet {
         String currentAdminName = "Admin"; // Fallback name
         
         // Check if the user is actually logged in and is an Admin
-        if (session != null && session.getAttribute("adminName") != null) {
+        if (session != null && "ADMIN".equals(session.getAttribute("role"))) {
             currentAdminName = (String) session.getAttribute("adminName");
+            if (currentAdminName == null) {
+                currentAdminName = "Master Admin";
+            }
         } else {
             // Kick them back to the login page if they try to bypass the Gatekeeper!
             response.sendRedirect("login.jsp?error=Access Denied! Please login as Admin.");
             return;
         }
 
-        // 2. AKSHAT'S RESOLVE LOGIC
+        // 2. AKSHAT'S RESOLVE LOGIC & NEW DELETE LOGIC
         String action = request.getParameter("action");
         String idParam = request.getParameter("id");
 
         if ("resolve".equals(action) && idParam != null) {
             int idToResolve = Integer.parseInt(idParam);
-            
-            System.out.println(">>> CLICKED RESOLVE ON ID: " + idToResolve); // DEBUG PRINT
-            
+            System.out.println(">>> CLICKED RESOLVE ON ID: " + idToResolve); 
             ComplaintDAO.updateStatus(idToResolve, "CLOSED");
             
+            response.sendRedirect("admin");
+            return;
+            
+        } else if ("delete".equals(action) && idParam != null) {
+            // NEW: The Delete Logic!
+            int idToDelete = Integer.parseInt(idParam);
+            
+            // Calls the DAO method you found
+            ComplaintDAO.deleteComplaint(idToDelete); 
+            System.out.println("🗑️ ADMIN DELETED ISSUE ID: " + idToDelete);
+            
+            // Refresh the page
             response.sendRedirect("admin");
             return;
         }

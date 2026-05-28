@@ -56,16 +56,18 @@ public class DBConnection {
                 severity_score INTEGER DEFAULT 50,
                 status TEXT NOT NULL DEFAULT 'OPEN',
                 image_path TEXT,
+                user_id INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
             """;
 
-        // NEW: The Junction table that prevents double-voting!
-        String createVotes = """
-            CREATE TABLE IF NOT EXISTS user_votes (
-                username TEXT NOT NULL,
-                complaint_id INTEGER NOT NULL,
-                PRIMARY KEY (username, complaint_id)
+        String createNotifications = """
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                is_read INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
             """;
 
@@ -73,7 +75,25 @@ public class DBConnection {
              Statement st = conn.createStatement()) {
             st.execute(createUsers);
             st.execute(createComplaints);
-            st.execute(createVotes); // Execute the new table
+            st.execute(createNotifications);
+
+            // Safe migration: Add columns to existing complaints table if they are missing
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN image_path TEXT");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN user_id INTEGER");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN dispatch_status TEXT DEFAULT 'IDLE'");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN dispatch_log TEXT");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN bounty_pool INTEGER DEFAULT 0");
+            } catch (SQLException ignore) {}
+
             System.out.println("✅ CivicFix tables initialized (SQLite).");
         } catch (SQLException e) {
             System.out.println("❌ Table creation failed.");
