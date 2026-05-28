@@ -23,8 +23,11 @@ public class AdminController extends HttpServlet {
         String currentAdminName = "Admin"; // Fallback name
         
         // Check if the user is actually logged in and is an Admin
-        if (session != null && session.getAttribute("adminName") != null) {
+        if (session != null && "ADMIN".equals(session.getAttribute("role"))) {
             currentAdminName = (String) session.getAttribute("adminName");
+            if (currentAdminName == null) {
+                currentAdminName = "Master Admin";
+            }
         } else {
             // Kick them back to the login page if they try to bypass the Gatekeeper!
             response.sendRedirect("login.jsp?error=Access Denied! Please login as Admin.");

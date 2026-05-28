@@ -55,6 +55,18 @@ public class DBConnection {
                 category TEXT NOT NULL,
                 severity_score INTEGER DEFAULT 50,
                 status TEXT NOT NULL DEFAULT 'OPEN',
+                image_path TEXT,
+                user_id INTEGER,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """;
+
+        String createNotifications = """
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                is_read INTEGER DEFAULT 0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
             """;
@@ -63,6 +75,25 @@ public class DBConnection {
              Statement st = conn.createStatement()) {
             st.execute(createUsers);
             st.execute(createComplaints);
+            st.execute(createNotifications);
+
+            // Safe migration: Add columns to existing complaints table if they are missing
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN image_path TEXT");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN user_id INTEGER");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN dispatch_status TEXT DEFAULT 'IDLE'");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN dispatch_log TEXT");
+            } catch (SQLException ignore) {}
+            try {
+                st.execute("ALTER TABLE complaints ADD COLUMN bounty_pool INTEGER DEFAULT 0");
+            } catch (SQLException ignore) {}
+
             System.out.println("✅ CivicFix tables initialized (SQLite).");
         } catch (SQLException e) {
             System.out.println("❌ Table creation failed.");

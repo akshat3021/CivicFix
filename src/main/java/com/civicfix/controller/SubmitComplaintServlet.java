@@ -55,6 +55,15 @@ public class SubmitComplaintServlet extends HttpServlet {
         String category = request.getParameter("category");
         String description = request.getParameter("description");
         Part imagePart = request.getPart("image");
+        String severityParam = request.getParameter("severity_score");
+        int severityScore = 50; // default
+        if (severityParam != null && !severityParam.isEmpty()) {
+            try {
+                severityScore = Integer.parseInt(severityParam);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
 
         // 3. Use Teammate's Validators
         String validationError = ComplaintValidator.validate(title, description, category);
@@ -99,6 +108,8 @@ public class SubmitComplaintServlet extends HttpServlet {
         newComplaint.setCategory(category);
         newComplaint.setDescription(description);
         newComplaint.setImagePath(finalImagePath);
+        newComplaint.setUserId(currentUser.getId()); // Set reporting user's ID
+        newComplaint.setSeverityScore(severityScore); // Save severity score submitted by citizen
         
         boolean isSaved = ComplaintDAO.insertComplaint(newComplaint);
 

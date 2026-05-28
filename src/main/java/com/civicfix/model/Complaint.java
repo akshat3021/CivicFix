@@ -11,6 +11,7 @@ public class Complaint {
     private String status;
     private boolean isReopened;
     private double priorityScore;
+    private int userId; // The ID of the reporting citizen
 
     // Getters and Setters needed by the DAO:
     public int getId() { return id; }
@@ -43,8 +44,23 @@ public class Complaint {
 
     // Add this with the other variables
     private String imagePath;
+    private String dispatchStatus;
+    private String dispatchLog;
+    private int bountyPool;
 
     // Add these at the bottom
     public String getImagePath() { return imagePath; }
     public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
+
+    public String getDispatchStatus() { return dispatchStatus; }
+    public void setDispatchStatus(String dispatchStatus) { this.dispatchStatus = dispatchStatus; }
+
+    public String getDispatchLog() { return dispatchLog; }
+    public void setDispatchLog(String dispatchLog) { this.dispatchLog = dispatchLog; }
+
+    public int getBountyPool() { return bountyPool; }
+    public void setBountyPool(int bountyPool) { this.bountyPool = bountyPool; }
 }
